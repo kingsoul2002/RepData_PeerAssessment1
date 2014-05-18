@@ -2,19 +2,54 @@
 
 
 ## Loading and preprocessing the data
-
-
-
+```{r}
+data <- read.csv(unz("activity.zip","activity.csv"),)
+data <- transform(data,date = as.Date(data$date, "%Y-%m-%d"))
+```
 ## What is mean total number of steps taken per day?
-
-
-
+```{r}
+stepsperday <- c()
+for(i in min(data$date):max(data$date)) {
+    stepsperday <- c(stepsperday, sum(data[data$date == i,]$steps))
+}
+hist(stepsperday,xlab="Steps taken per day")
+mean(stepsperday,na.rm=TRUE)
+median(stepsperday,na.rm=TRUE)
+```
 ## What is the average daily activity pattern?
-
-
-
+```{r}
+meanperinterval <- c()
+for(i in unique(data$interval)) {
+    meanperinterval <- c(meanperinterval, mean(data[data$interval == i,]$steps,na.rm=TRUE))
+}
+plot(unique(data$interval),meanperinterval,type="l",xlab="Interval",ylab="Mean steps per interval")
+```
 ## Imputing missing values
-
-
-
+```{r}
+miss <- is.na(data$steps)
+sum(miss)
+meanandinterval <- data.frame(interval = unique(data$interval),meanperinterval)
+data[miss, ]$steps <- meanandinterval$meanperinterval
+stepsperday <- c()
+for(i in min(data$date):max(data$date)) {
+    stepsperday <- c(stepsperday, sum(data[data$date == i,]$steps))
+}
+hist(stepsperday,xlab="Steps taken per day",main="AFTER REPLACE")
+mean(stepsperday,na.rm=TRUE)
+median(stepsperday,na.rm=TRUE)
+```
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+data <- transform(data,date=factor(weekdays(data$date),levels=c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")))
+par(mfrow=c(2,1))
+meanperinterval <- c()
+for(i in unique(data$interval)) {
+    meanperinterval <- c(meanperinterval, mean(data[(data$interval == i & unclass(data$date) <=5),]$steps,na.rm=TRUE))
+}
+plot(unique(data$interval),meanperinterval,type="l",xlab="Interval",ylab="Mean steps per interval")
+meanperinterval <- c()
+for(i in unique(data$interval)) {
+    meanperinterval <- c(meanperinterval, mean(data[(data$interval == i & unclass(data$date) >=6),]$steps,na.rm=TRUE))
+}
+plot(unique(data$interval),meanperinterval,type="l",xlab="Interval",ylab="Mean steps per interval")
+```
